@@ -16,6 +16,7 @@
 
 /*---------------------- P R I V A T E   D E F I N E S -----------------------*/
 #define IS_LEAVE(node)  (((uint16_t)(node))&(0x8000))
+#define GET_NODE(node)  (((uint16_t)(node))&(~0x8000))
 #define MAKE_LEAVE(node) ((node)|(0x8000))
 
 /*--------------------- P R I V A T E   T Y P E D E F S ----------------------*/
@@ -333,6 +334,30 @@ void HUFFMAN_createEncodeEntries(HUFFMAN_tree_t const * const tree,
                                  HUFFMAN_encoder_t * const currentCode,
                                  HUFFMAN_encoderList_t * const list)
 {
-
+  HUFFMAN_node_t const * pNode = tree->nodes[currentNode];
+  HUFFMAN_encoder_t * pEncoder;
+  list->nBytes++;
+  // handle the 0
+  if(IS_LEAVE(pNode[0]))
+  {
+    pEncoder = (*list)[GET_NODE(pNode[0])];
+    pEncoder->nBytes = list->nBytes;
+    memcpy(pEncoder->code, list->code, sizeof(pEncoder->code));
+  }else
+  {
+    HUFFMAN_createEncodeEntries(tree, pNode[0], currentCode, list);
+  }
+  // currentCode should be 0 at the current State
+  // handle the 1
+  if(IS_LEAVE(pNode[1]))
+    {
+      pEncoder = (*list)[GET_NODE(pNode[1])];
+      pEncoder->nBytes = list->nBytes;
+      memcpy(pEncoder->code, list->code, sizeof(pEncoder->code));
+    }else
+    {
+      //TODO: add 1 to the currentCode
+      HUFFMAN_createEncodeEntries(tree, pNode[1], currentCode, list);
+    }
 }
 
